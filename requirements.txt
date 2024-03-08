@@ -1,0 +1,9 @@
+aiohttp
+aiortc
+av
+numpy
+pyautogui
+opencv-python
+pydirectinput
+dxcam
+websockets

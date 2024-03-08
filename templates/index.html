@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Remote RTC</title>
+    <style>
+      body {
+          margin: 0;
+          padding: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          overflow: hidden; 
+          background-color: #111;
+          text-align: center;
+      }
+    
+      #media {
+          position: relative;
+          width: auto; 
+          height: auto;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          flex-direction: column; 
+          background-color: rgb(209, 209, 209);
+          padding: 15px;
+          border-radius: 10px;
+      }
+    
+      button {
+          padding: 8px 16px;
+          font-size: 16px;
+          margin-top: 8px; 
+          background-color: #585858;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+          border-radius: 4px;
+      }
+    
+      input[type="password"] {
+          padding: 8px 16px;
+          font-size: 16px;
+          margin-bottom: 8px; 
+          background-color: #585858;
+          border-radius: 4px;
+          border: none;
+          height: 30px;
+          color: #fff;
+      }
+    
+      video {
+          width: 100vw;
+          height: auto;
+          max-height: 100vh;
+          object-fit: contain;
+          display: none;
+      }
+    
+      .option {
+          margin-bottom: 8px;
+      }
+      #lockButtonandstart {
+        height: 35px;
+      }
+    </style>
+    
+  </head>
+  <body>
+  
+  <div id="media">
+      <input type="password" id="password" name="password" placeholder="Enter password"  onkeydown="handleEnter(event)">
+      <button id="lockButtonandstart" onclick="start()">Connect</button>
+      <video id="video" autoplay="true" width="1920" height="1080" playsinline="true"></video>
+  </div>
+<script>
+    var video = document.getElementById('video');
+    var currentLocation = window.location;
+    var keyState = {};
+    var socket = new WebSocket('ws://' + currentLocation.hostname + ':' + "6969");
+    var isSentPassword = false;
+    var pc = null;
+    var password = null;
+    let PublicIP = "12.34.56.78";
+
+    function handleEnter(event) {
+      if (event.key === 'Enter') {
+        start();
+      }
+    }
+  
+    socket.onerror = function (event) {
+      if (event.code === 404) {
+        var socket = new WebSocket('ws://' + PublicIP + ':' + "6969");
+      } else {
+        location.reload();
+      }
+    };
+
+    function sendpass() {
+      password = document.getElementById('password').value;
+      if (!isSentPassword) {
+        isSentPassword = true;
+        socket.send(password);
+      }
+    }
+    var pressedKeys = {}; 
+
+    window.addEventListener('keydown', function (e) {
+  if (isSentPassword) {
+    if (!pressedKeys[e.keyCode]) {
+      pressedKeys[e.keyCode] = true;
+
+      if (e.keyCode === 222) {
+        console.log('Escape key pressed');
+      } else {
+        sendKeyAction('/key_event', {
+          key: e.key,
+          code: e.keyCode,
+          event: 'down'
+        });
+      }
+    }
+  }
+}, false);
+
+window.addEventListener('keyup', function (e) {
+  if (isSentPassword) {
+    if (e.keyCode !== 222) {
+      sendKeyAction('/key_event', {
+        key: e.key,
+        code: e.keyCode,
+        event: 'up'
+      });
+      pressedKeys[e.keyCode] = false;
+    } else {
+      // For key code 222, send 'Escape' key up event
+      sendKeyAction('/key_event', {
+          key: 'Escape',
+          code: 27,
+          event: 'down'
+        });
+
+        sendKeyAction('/key_event', {
+          key: 'Escape',
+          code: 27,
+          event: 'up'
+        });
+    }
+  }
+}, false);
+
+
+    window.addEventListener('wheel', function (e) {
+        var delta = e.deltaY > 0 ? 1 : -1;
+        var linesToScroll = delta * 16;
+        sendMouseScrollAction('/mouse_scroll', linesToScroll);
+    });
+
+    video.addEventListener('mousedown', function (e) {
+      if (e.button === 0) {
+        sendMouseAction('/mouse_down', 'left');
+        video.requestPointerLock();
+      }
+      if (e.button === 2) {
+        sendMouseAction('/mouse_down', 'right');
+      }
+    });
+
+    video.addEventListener('mouseup', function (e) {
+      if (e.button === 0) {
+        sendMouseAction('/mouse_up', 'left');
+      }
+      if (e.button === 2) {
+        sendMouseAction('/mouse_up', 'right');
+      }
+    });
+
+    function sendMouseScrollAction(endpoint, linesToScroll) {
+      socket.send(JSON.stringify({
+        password: password,
+        endpoint: endpoint,
+        lines: linesToScroll
+      }));
+    }
+
+    function sendKeyAction(endpoint, keyInfo) {
+      socket.send(JSON.stringify({
+        password: password,
+        endpoint: endpoint,
+        keyInfo: keyInfo
+      }));
+    }
+
+    function sendMouseAction(endpoint, button) {
+      socket.send(JSON.stringify({
+        password: password,
+        endpoint: endpoint,
+        button: button
+      }));
+    }
+
+    window.addEventListener('scroll', function () {
+      var scrollTop = window.scrollY || document.documentElement.scrollTop;
+      var newWidth = Math.max(video.width - scrollTop, 1);
+      video.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+    });
+
+    function sendCursorPosition(deltaX, deltaY) {
+      sendpass();
+
+      var scaleX = video.width / 1920;
+      var scaleY = video.height / 1080;
+      var scaledDeltaX = deltaX * scaleX;
+      var scaledDeltaY = deltaY * scaleY;
+      var message = `${scaledDeltaX},${scaledDeltaY}`;
+      socket.send(JSON.stringify({
+        password: password,
+        endpoint: '/mouse_cursor',
+        message: message
+      }));
+    }
+
+    video.addEventListener('mousemove', function (e) {
+      if (document.pointerLockElement === video || document.mozPointerLockElement === video) {
+        updateCursorLocked(e.movementX, e.movementY);
+      } else {
+        updateCursor(e);
+      }
+    });
+
+    function updateCursorLocked(movementX, movementY) {
+      sendCursorPosition(movementX, movementY);
+    }
+
+    var lastX = 0;
+    var lastY = 0;
+
+    function updateCursor(e) {
+      var rect = video.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var deltaX = x - lastX;
+      var deltaY = y - lastY;
+      lastX = x;
+      lastY = y;
+      sendCursorPosition(deltaX, deltaY);
+    }
+
+    function negotiate() {
+        pc.addTransceiver('video', { direction: 'recvonly' });
+        return pc.createOffer().then((offer) => {
+            return pc.setLocalDescription(offer);
+        }).then(() => {
+            return new Promise((resolve) => {
+                if (pc.iceGatheringState === 'complete') {
+                    resolve();
+                } else {
+                    const checkState = () => {
+                        if (pc.iceGatheringState === 'complete') {
+                            pc.removeEventListener('icegatheringstatechange', checkState);
+                            resolve();
+                        }
+                    };
+                    pc.addEventListener('icegatheringstatechange', checkState);
+                }
+            });
+        }).then(() => {
+            var offer = pc.localDescription;
+            return fetch('/offer', {
+                body: JSON.stringify({
+                    password: password,
+                    sdp: offer.sdp,
+                    type: offer.type,
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST'
+            });
+        }).then((response) => {
+            return response.json();
+        }).then((answer) => {
+            return pc.setRemoteDescription(answer);
+        }).catch((e) => {
+            //alert(e);
+        });
+    }
+
+    function start() {
+      password = document.getElementById('password').value;
+      sendpass();
+
+      video.requestPointerLock();
+      document.getElementById('lockButtonandstart').style.display = 'none';
+      document.getElementById('password').style.display = 'none';
+      document.getElementById('video').style.display = 'block';
+      document.getElementById('media').style.backgroundColor = '#111';
+
+      var config = {
+              sdpSemantics: 'unified-plan',
+              iceServers: [
+                  { urls: 'stun:stun.relay.metered.ca:80' }
+              ]
+          };
+      pc = new RTCPeerConnection(config);
+      pc.addEventListener('track', (evt) => {
+          document.getElementById('video').srcObject = evt.streams[0];
+      });
+      negotiate();
+    }
+
+    window.addEventListener('beforeunload', function() {
+        if (pc) {
+            pc.close();
+        }
+    });
+
+    window.addEventListener('unload', function() {
+        if (pc) {
+            pc.close();
+        }
+    });
+
+    window.onbeforeunload = function (e) {
+    e.preventDefault();
+};
+
+</script>
+</body>
+</html>
