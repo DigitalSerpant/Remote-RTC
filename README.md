@@ -2,6 +2,7 @@
 # Remote RTC
 
 Remote RTC is a low latency remote desktop application that runs on your computer and hosts it to your local network that can run on any modern browser.
+Download it [here](https://github.com/DigitalSerpant/Remote-RTC/releases/download/1.0.0/Remote.RTC.1.0.0.zip)
 
 
 ## Build
