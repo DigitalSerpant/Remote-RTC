@@ -20,7 +20,7 @@ or if that fails use:
 
 ## Deployment
 
-To run the Remote RTC, simply put the two exe files in the same directory and run the main.exe. If Windows asks you to allow it you your local network click Allow. To use Remote RTC, after running the main.exe go to http://loaclhost:6966 as the default address. If you would like to port forward this to the open internet, in the HTML change the PublicIP to your public IP like the following:
+To run the Remote RTC, simply put the two exe files in the same directory and run the main.exe and create a secure password.  If Windows asks you to allow it you your local network click Allow. To use Remote RTC, after running the main.exe go to http://loaclhost:6966 as the default address. If you would like to port forward this to the open internet, in the HTML change the PublicIP to your public IP like the following:
 
 ```javascript
   let PublicIP = "12.34.56.78";
