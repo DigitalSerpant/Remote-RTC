@@ -1,7 +1,7 @@
 
 # Remote RTC
 
-Remote RTC is a low latency remote desktop application that runs on your computer and hosts it to your local network that can run on any modern browser. Tested works best on 1920x1080
+Remote RTC is a low latency remote desktop application that runs on your computer and hosts it to your local network that can run on any modern browser. Remote RTC can be used to host a personal Geforce Now or Parsec. Capeable of sustating stable 60 fps on a good network connection. Tested works best on 1920x1080
 
 ## Build
 To build Remote RTC, make sure you have [Pyinstaller](https://pyinstaller.org/en/stable/) before running 'build.bat'. To install the required libraries besides Pyinstaller, use the commands:
