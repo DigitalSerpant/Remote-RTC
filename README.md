@@ -23,4 +23,4 @@ To run the Remote RTC first download it [here](https://github.com/DigitalSerpant
 ```javascript
   let PublicIP = "12.34.56.78";
 ```
-You need to foward two ports for Remote RTC. The default ports 6966 and 6969. 6966 is the webRTC and main website while 6969 is the websocket port.
+You need to foward two ports for Remote RTC. The default ports 6966 and 6969. 6966 is the webRTC and main website while 6969 is the websocket port. I will note that you monitor must remain on unless it supports acting like its on then the monitor is off. A ways to check this is to simply turn you monitor off while watching the screen and if it stops streaming your monitor does not support being off. I do plan to add a virtual monitor driver in the future.
