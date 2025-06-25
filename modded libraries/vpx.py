@@ -11,10 +11,10 @@ from ..jitterbuffer import JitterFrame
 from ..mediastreams import VIDEO_CLOCK_RATE, VIDEO_TIME_BASE, convert_timebase
 from ._vpx import ffi, lib
 from .base import Decoder, Encoder
-
-DEFAULT_BITRATE = 800000  # Adjust as needed
-MIN_BITRATE = 500000  # Adjust as needed
-MAX_BITRATE = 3000000  # Adjust as needed
+# Adjust as needed, however this is a good default value.
+DEFAULT_BITRATE = 800000  
+MIN_BITRATE = 500000
+MAX_BITRATE = 3000000  
 
 MAX_FRAME_RATE = 60
 PACKET_MAX = 1300
